@@ -12,26 +12,38 @@ public class AnimationController : MonoBehaviour
     public AnimationClip IdleAnimation;
     public AnimationClip WalkingAnimation;
 
-    //private StateMachine<PlayerState> _stateMachine;
-    private GameActor _player;
+    private StateMachine<PlayerState> _stateMachine;
+    private CharacterController _player;
     private Animation _animation;
 
     private void Awake()
     {
-        //_stateMachine = new StateMachine<PlayerState>();
-        _player = GetComponent<GameActor>();
+        _stateMachine = new StateMachine<PlayerState>();
+        _player = GetComponent<CharacterController>();
         _animation = GetComponentInChildren<Animation>();
 
         Require.That(_player, "_player").IsNotNull();
         Require.That(_animation, "_animation").IsNotNull();
 
-        //_stateMachine.AddStateHandler(PlayerState.IDLE, OnIdle);
-        //_stateMachine.AddStateHandler(PlayerState.WALKING, OnWalking);
+        initStateHandlers();
     }
 
-    private void FixedUpdate()
+    private void initStateHandlers()
     {
-        //_stateMachine.Update();
+        _stateMachine.AddTransitionHanlder(PlayerState.IDLE, PlayerState.IDLE, OnIdle);
+        _stateMachine.AddTransitionHanlder(PlayerState.WALKING, PlayerState.WALKING, OnWalking);
+    }
+
+    private void Update()
+    {
+        if (_player.velocity.normalized.magnitude > 1)
+        {
+            _stateMachine.Advance(PlayerState.WALKING);
+        }
+        else
+        {
+            _stateMachine.Advance(PlayerState.IDLE);
+        }
     }
 
     private void OnIdle()

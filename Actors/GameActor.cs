@@ -5,14 +5,23 @@ using UnityEngine;
 public class GameActor : MonoBehaviour
 {
     public float MoveSpeed = 1.0f;
+    public float Gravity = 10.0f;
 
     private CharacterController _controller;
-
+    
     public event Action Moved = delegate { }; 
 
     public virtual void Move(Vector3 targetDirection)
     {
-        _controller.Move(targetDirection*MoveSpeed*Time.deltaTime);
+        if (!_controller.isGrounded)
+        {
+            targetDirection.y -= Gravity;
+        }
+
+        targetDirection.x *= MoveSpeed;
+        targetDirection.z *= MoveSpeed;
+
+        _controller.Move(targetDirection * Time.deltaTime);
         Moved();
     }
 
