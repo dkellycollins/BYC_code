@@ -37,7 +37,42 @@ public class Tuple<T>
     }
 }
 
-public class StateMachine<T>
+public abstract class StateMachineBehaviour<T> : BaseBehaviour
+{
+    private readonly Dictionary<Tuple<T>, Action> _stateTransitionHandlers;
+    private T _currentState;
+
+    public StateMachineBehaviour()
+        : this(default(T))
+    {
+
+    }
+
+    public StateMachineBehaviour(T defaultState)
+    {
+        _stateTransitionHandlers = new Dictionary<Tuple<T>, Action>();
+        _currentState = defaultState;
+    }
+
+    public void AddTransitionHanlder(T from, T to, Action handler)
+    {
+        var transition = new Tuple<T>(from, to);
+        _stateTransitionHandlers.Add(transition, handler);
+    }
+
+    public void Advance(T newState)
+    {
+        var transition = new Tuple<T>(_currentState, newState);
+
+        if (_stateTransitionHandlers.ContainsKey(transition))
+            _stateTransitionHandlers[transition]();
+        _currentState = newState;
+    }
+
+    protected abstract void Update();
+}
+
+public abstract class StateMachine<T>
 {
     private readonly Dictionary<Tuple<T>, Action> _stateTransitionHandlers;
     private readonly Dictionary<T, Action> _stateHandlers;
@@ -67,12 +102,6 @@ public class StateMachine<T>
         _stateHandlers.Add(state, handler);
     }
 
-    public void Update()
-    {
-        if (_stateHandlers.ContainsKey(_currentState))
-            _stateHandlers[_currentState]();
-    }
-
     public void Advance(T newState)
     {
         var transition = new Tuple<T>(_currentState, newState);
@@ -81,4 +110,6 @@ public class StateMachine<T>
             _stateTransitionHandlers[transition]();
         _currentState = newState;
     }
+
+    public abstract void Update();
 }
